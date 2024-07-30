@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Cliente {
+  id        String   @id @default(uuid()) @map("id")
+  nome      String   @map("nome")
+  email     String   @map("email")
+  telefone  String?  @map("telefone")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  locacoes  Locacao[]
+  reservas  Reserva[] @relation("ClienteReservas")
+
+  @@map("clientes")
+}
+
+model Filme {
+  id            String   @id @default(uuid()) @map("id")
+  tmdb_id       Int      @unique @map("tmdb_id")
+  nome          String   @map("nome")
+  sinopse       String?  @map("sinopse")
+  classificacao String?  @map("classificacao")
+  data_lancamento DateTime? @map("data_lancamento")
+  poster_path   String?  @map("poster_path")
+  backdrop_path String?  @map("backdrop_path")
+  popularidade  Float?   @map("popularidade")
+  votos         Int?     @map("votos")
+  media_votos   Float?   @map("media_votos")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at")
+  reservas      Reserva[]
+  generos       FilmeGenero[]
+
+  @@map("filmes")
+}
+
+model Genero {
+  id    String  @id @default(uuid()) @map("id")
+  nome  String  @map("nome")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  filmes FilmeGenero[]
+
+  @@map("generos")
+}
+
+model FilmeGenero {
+  filme_id String @map("filme_id")
+  genero_id String @map("genero_id")
+
+  filme   Filme   @relation(fields: [filme_id], references: [id])
+  genero  Genero  @relation(fields: [genero_id], references: [id])
+
+  @@id([filme_id, genero_id])
+  @@map("filme_genero")
+}
+
+model Reserva {
+  id         String   @id @default(uuid()) @map("id")
+  filme_id   String   @map("filme_id")
+  cliente_id String   @map("cliente_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
+  expiresAt  DateTime @map("expires_at")
+  filme      Filme    @relation(fields: [filme_id], references: [id])
+  cliente    Cliente  @relation(fields: [cliente_id], references: [id], name: "ClienteReservas")
+  locacoes   Locacao[]
+
+  @@map("reservas")
+}
+
+
+enum LocacaoStatus {
+  RESERVED
+  LEASED
+  RETURNED
+}
+
+model Locacao {
+  id         String   @id @default(uuid()) @map("id")
+  reserva_id String   @map("reserva_id")
+  cliente_id String   @map("cliente_id")
+  status     LocacaoStatus @default(RESERVED) @map("status")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
+  reserva    Reserva  @relation(fields: [reserva_id], references: [id])
+  cliente    Cliente  @relation(fields: [cliente_id], references: [id])
+
+  @@map("locacoes")
+}
+
+model Usuario {
+  id        String   @id @default(uuid()) @map("id")
+  nome      String   @map("nome")
+  email     String   @map("email")
+  senha     String   @map("senha")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("usuarios")
+}
